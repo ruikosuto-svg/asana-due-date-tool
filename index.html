@@ -14,9 +14,51 @@
       color: #172b4d;
     }
     .container { max-width: 600px; margin: 0 auto; }
-    .header { margin-bottom: 24px; }
+
+    .header { margin-bottom: 20px; }
     .header h1 { font-size: 22px; font-weight: 700; color: #172b4d; }
     .header p { font-size: 13px; color: #6b778c; margin-top: 4px; }
+
+    .help-buttons { display: flex; gap: 8px; margin-bottom: 16px; }
+
+    details { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(9,30,66,.1); margin-bottom: 16px; overflow: hidden; }
+    details[open] summary { border-bottom: 1px solid #f0f1f3; }
+    summary {
+      list-style: none;
+      padding: 14px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #0052cc;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+    summary::-webkit-details-marker { display: none; }
+    summary .arrow { font-size: 11px; color: #6b778c; margin-left: auto; transition: transform .2s; }
+    details[open] summary .arrow { transform: rotate(180deg); }
+    .detail-body { padding: 18px; font-size: 13px; line-height: 1.8; color: #172b4d; }
+    .detail-body ol { padding-left: 18px; }
+    .detail-body li { margin-bottom: 8px; }
+    .detail-body .note {
+      margin-top: 14px;
+      padding: 10px 14px;
+      background: #fffae6;
+      border-left: 3px solid #f6c000;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #5e4b00;
+    }
+    .detail-body .step-img {
+      background: #f4f5f7;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: #42526e;
+      margin: 6px 0;
+      font-family: monospace;
+    }
 
     .card {
       background: #fff;
@@ -33,7 +75,6 @@
       letter-spacing: .06em;
       margin-bottom: 16px;
     }
-
     .field { margin-bottom: 18px; }
     .field:last-child { margin-bottom: 0; }
     .field label {
@@ -43,7 +84,7 @@
       color: #172b4d;
       margin-bottom: 6px;
     }
-    .field input, .field select {
+    .field input {
       width: 100%;
       height: 40px;
       padding: 0 12px;
@@ -55,35 +96,8 @@
       outline: none;
       transition: border-color .15s, background .15s;
     }
-    .field input:focus, .field select:focus {
-      border-color: #4c9aff;
-      background: #fff;
-    }
-    .field .hint {
-      font-size: 11px;
-      color: #6b778c;
-      margin-top: 5px;
-    }
-
-    .pat-row { display: flex; gap: 8px; align-items: flex-start; }
-    .pat-row input { flex: 1; }
-    .btn-test {
-      height: 40px;
-      padding: 0 14px;
-      background: #f4f5f7;
-      border: 2px solid #dfe1e6;
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: 600;
-      color: #42526e;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: background .15s;
-    }
-    .btn-test:hover { background: #ebecf0; }
-    .pat-status { font-size: 12px; margin-top: 5px; min-height: 16px; }
-    .pat-status.ok { color: #00875a; }
-    .pat-status.err { color: #de350b; }
+    .field input:focus { border-color: #4c9aff; background: #fff; }
+    .field .hint { font-size: 11px; color: #6b778c; margin-top: 5px; }
 
     .pkg-group { display: flex; gap: 8px; }
     .pkg-option { flex: 1; }
@@ -117,12 +131,10 @@
       font-weight: 700;
       cursor: pointer;
       transition: background .15s;
-      letter-spacing: .02em;
     }
     .btn-run:hover { background: #0065ff; }
     .btn-run:disabled { background: #b3d4ff; cursor: not-allowed; }
 
-    /* Results */
     #result-section { display: none; }
     .summary-bar {
       padding: 12px 16px;
@@ -153,7 +165,6 @@
     }
     .result-table tr:last-child td { border-bottom: none; }
     .result-table tr:hover td { background: #f8f9fa; }
-
     .due { font-weight: 700; color: #172b4d; font-variant-numeric: tabular-nums; }
     .badge {
       display: inline-block;
@@ -165,7 +176,6 @@
     .badge-ok { background: #e3fcef; color: #006644; }
     .badge-skip { background: #f4f5f7; color: #6b778c; }
     .badge-err { background: #ffebe6; color: #bf2600; }
-
     .error-box {
       padding: 12px 16px;
       background: #ffebe6;
@@ -183,27 +193,54 @@
     <p>発売月をもとに、商品タスクの全サブタスクへ期日を自動設定します</p>
   </div>
 
-  <!-- 認証カード -->
-  <div class="card">
-    <div class="card-title">Asana 認証</div>
-    <div class="field">
-      <label>Personal Access Token</label>
-      <div class="pat-row">
-        <input type="password" id="pat" placeholder="2/xxxxxxxxxxxxxxxx">
-        <button class="btn-test" onclick="testPat()">接続テスト</button>
-      </div>
-      <div class="pat-status" id="pat-status"></div>
-      <div class="hint">Asana › 設定 › アプリ › デベロッパーコンソール › 個人アクセストークン で発行。一度入力すれば保存されます。</div>
+  <!-- 折りたたみ：使用方法 -->
+  <details>
+    <summary>📋 ツールの使用方法 <span class="arrow">▼</span></summary>
+    <div class="detail-body">
+      <ol>
+        <li><strong>Personal Access Token</strong> を入力欄に貼り付ける<br>
+            <span style="color:#6b778c">（初回のみ。次回からは自動入力されます）</span></li>
+        <li>Asanaで対象の商品タスクを開き、<strong>URLをコピー</strong>して「タスクURL」欄に貼り付ける</li>
+        <li><strong>発売年月</strong>を選択する（例：2027年2月）</li>
+        <li><strong>包材タイプ</strong>を選択する（印刷袋 または ラベル）</li>
+        <li>「<strong>期日を一括設定する</strong>」ボタンを押す</li>
+        <li>設定結果の一覧が表示されたら完了。Asanaをリロードすると反映されています。</li>
+      </ol>
+      <div class="note">⚠️ 同じタスクで再実行すると期日が上書きされます。意図しない変更に注意してください。</div>
     </div>
-  </div>
+  </details>
+
+  <!-- 折りたたみ：PATの取得方法 -->
+  <details>
+    <summary>🔑 Personal Access Token の取得方法 <span class="arrow">▼</span></summary>
+    <div class="detail-body">
+      <ol>
+        <li>Asanaにログインし、<strong>左下のプロフィールアイコン</strong>をクリック</li>
+        <li>「<strong>設定</strong>」を選択</li>
+        <li>上部タブの「<strong>アプリ</strong>」をクリック</li>
+        <li>ページを一番下までスクロール</li>
+        <li>「<strong>デベロッパーコンソールを表示</strong>」をクリック（別タブで開く）</li>
+        <li>「個人アクセストークン」の「<strong>＋ トークンを新規作成</strong>」をクリック</li>
+        <li>トークン名（例：期日設定ツール）を入力し、利用規約に同意して「<strong>トークンを作成</strong>」</li>
+        <li>表示されたトークン文字列（<code>2/</code>から始まる）をコピーしてツールの入力欄に貼り付ける</li>
+      </ol>
+      <div class="note">⚠️ トークンは作成直後しか表示されません。必ずその場でコピーしてください。<br>トークンは自分だけのものです。他の人と共有しないでください。</div>
+    </div>
+  </details>
 
   <!-- 設定カード -->
   <div class="card">
     <div class="card-title">設定</div>
 
     <div class="field">
-      <label>Asana タスク URL または GID</label>
-      <input type="text" id="task-url" placeholder="https://app.asana.com/... または 1215707667924409">
+      <label>Personal Access Token</label>
+      <input type="password" id="pat" placeholder="2/xxxxxxxxxxxxxxxx">
+      <div class="hint">入力後は自動保存されます。取得方法は上の「🔑 Personal Access Token の取得方法」をご確認ください。</div>
+    </div>
+
+    <div class="field">
+      <label>Asana タスク URL</label>
+      <input type="text" id="task-url" placeholder="https://app.asana.com/...">
       <div class="hint">AsanaでタスクのURLをコピーしてそのまま貼り付けてください</div>
     </div>
 
@@ -248,10 +285,6 @@
 </div>
 
 <script>
-// ─── 期日ルール（早見表 v14 チルド・グロサリーチーム） ───
-// [months_offset, day_rule]
-// months_offset: 発売月からの月数（-2=2ヶ月前、0=発売月）
-// day_rule: 'last'=末日 / 'week2'=第2週月曜 / 'biz5'=5営業日 / 数字=その日
 const RULES = [
   { key: 'OEM依頼先',          印刷袋: [-6,'last'], ラベル: [-6,'last'] },
   { key: '売買契約',            印刷袋: [-2,'last'], ラベル: [-2,'last'] },
@@ -294,22 +327,20 @@ const RULES = [
   { key: '販促',                印刷袋: [-1,'last'], ラベル: [-1,'last'] },
 ];
 
-function findRule(name) {
-  return RULES.find(r => name.includes(r.key)) || null;
-}
+function findRule(name) { return RULES.find(r => name.includes(r.key)) || null; }
 
 function lastDay(y, m) { return new Date(y, m, 0).getDate(); }
 
 function calcDue(launchYear, launchMonth0, offset, dayRule) {
   let total = launchMonth0 + offset;
   let y = launchYear + Math.floor(total / 12);
-  let m0 = ((total % 12) + 12) % 12; // 0-indexed
-  const m1 = m0 + 1; // 1-indexed
+  let m0 = ((total % 12) + 12) % 12;
+  const m1 = m0 + 1;
   let d;
   if (dayRule === 'last') {
     d = lastDay(y, m1);
   } else if (dayRule === 'week2') {
-    const wd = new Date(y, m0, 1).getDay(); // 0=Sun
+    const wd = new Date(y, m0, 1).getDay();
     const firstMon = wd === 1 ? 1 : 1 + (8 - wd) % 7;
     d = Math.min(firstMon + 7, lastDay(y, m1));
   } else if (dayRule === 'biz5') {
@@ -328,68 +359,37 @@ function calcDue(launchYear, launchMonth0, offset, dayRule) {
 
 function extractGid(input) {
   input = (input || '').trim();
-  // /task/GID形式
   let m = input.match(/\/task\/(\d+)/);
   if (m) return m[1];
-  // 末尾の数字
   m = input.match(/[/?]?(\d{10,})/);
   if (m) return m[1];
-  // 数字のみ
   if (/^\d+$/.test(input)) return input;
   return null;
 }
 
 const API = 'https://app.asana.com/api/1.0';
-function headers(pat) {
+function hdrs(pat) {
   return { 'Authorization': `Bearer ${pat}`, 'Content-Type': 'application/json' };
 }
 
-// ─── PAT 保存 ───
 window.addEventListener('DOMContentLoaded', () => {
   const saved = localStorage.getItem('asana_pat');
   if (saved) document.getElementById('pat').value = saved;
-});
-document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('pat').addEventListener('change', e => {
     if (e.target.value.trim()) localStorage.setItem('asana_pat', e.target.value.trim());
   });
 });
 
-// ─── 接続テスト ───
-async function testPat() {
-  const pat = document.getElementById('pat').value.trim();
-  const el = document.getElementById('pat-status');
-  if (!pat) { el.className = 'pat-status err'; el.textContent = 'PATを入力してください'; return; }
-  el.className = 'pat-status'; el.textContent = '確認中…';
-  try {
-    const r = await fetch(`${API}/users/me`, { headers: headers(pat) });
-    const d = await r.json();
-    if (r.ok) {
-      localStorage.setItem('asana_pat', pat);
-      el.className = 'pat-status ok';
-      el.textContent = `✅ 接続OK（${d.data.name}）`;
-    } else {
-      el.className = 'pat-status err';
-      el.textContent = `❌ ${d.errors?.[0]?.message || r.status}`;
-    }
-  } catch(e) {
-    el.className = 'pat-status err';
-    el.textContent = `❌ 通信エラー: ${e.message}`;
-  }
-}
-
-// ─── 期日一括設定 ───
 async function run() {
   const pat = document.getElementById('pat').value.trim();
   const urlInput = document.getElementById('task-url').value;
   const launchVal = document.getElementById('launch-month').value;
   const pkg = document.querySelector('input[name="pkg"]:checked').value;
-
   const gid = extractGid(urlInput);
-  if (!pat || !gid || !launchVal) {
-    alert('PAT・タスクURL（またはGID）・発売年月をすべて入力してください。');
-    return;
-  }
+
+  if (!pat) { alert('Personal Access Token を入力してください。\n上の「🔑 取得方法」をご確認ください。'); return; }
+  if (!gid) { alert('Asana タスクのURLを正しく入力してください。'); return; }
+  if (!launchVal) { alert('発売年月を選択してください。'); return; }
 
   const [ys, ms] = launchVal.split('-');
   const launchYear = parseInt(ys), launchMonth0 = parseInt(ms) - 1;
@@ -398,13 +398,12 @@ async function run() {
   btn.disabled = true; btn.textContent = '設定中…';
   document.getElementById('result-section').style.display = 'none';
   document.getElementById('result-body').innerHTML = '';
-  document.getElementById('summary-bar').innerHTML = '';
 
   try {
-    const r = await fetch(`${API}/tasks/${gid}/subtasks?opt_fields=gid,name`, { headers: headers(pat) });
+    const r = await fetch(`${API}/tasks/${gid}/subtasks?opt_fields=gid,name`, { headers: hdrs(pat) });
     if (!r.ok) {
       const d = await r.json();
-      showError(`サブタスク取得失敗 (${r.status}): ${d.errors?.[0]?.message || ''}`);
+      showError(`サブタスク取得失敗 (${r.status}): ${d.errors?.[0]?.message || 'PATが正しいか確認してください'}`);
       return;
     }
     const { data: subtasks } = await r.json();
@@ -415,21 +414,17 @@ async function run() {
     for (const task of subtasks) {
       const rule = findRule(task.name);
       const tr = document.createElement('tr');
-
       if (!rule) {
         skipCount++;
         tr.innerHTML = `<td>${task.name}</td><td>—</td><td><span class="badge badge-skip">スキップ</span></td>`;
         tbody.appendChild(tr);
         continue;
       }
-
       const [offset, dayRule] = rule[pkg];
       const due = calcDue(launchYear, launchMonth0, offset, dayRule);
-
       try {
         const ur = await fetch(`${API}/tasks/${task.gid}`, {
-          method: 'PUT',
-          headers: headers(pat),
+          method: 'PUT', headers: hdrs(pat),
           body: JSON.stringify({ data: { due_on: due } })
         });
         if (ur.ok) {
@@ -459,10 +454,11 @@ async function run() {
 }
 
 function showError(msg) {
-  const sec = document.getElementById('result-section');
-  document.getElementById('summary-bar').innerHTML = `<div class="error-box">❌ ${msg}</div>`;
-  document.getElementById('summary-bar').className = '';
-  sec.style.display = 'block';
+  const bar = document.getElementById('summary-bar');
+  bar.className = 'summary-bar err';
+  bar.textContent = `❌ ${msg}`;
+  document.getElementById('result-body').innerHTML = '';
+  document.getElementById('result-section').style.display = 'block';
 }
 </script>
 </body>
