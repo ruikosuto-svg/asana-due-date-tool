@@ -19,8 +19,6 @@
     .header h1 { font-size: 22px; font-weight: 700; color: #172b4d; }
     .header p { font-size: 13px; color: #6b778c; margin-top: 4px; }
 
-    .help-buttons { display: flex; gap: 8px; margin-bottom: 16px; }
-
     details { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(9,30,66,.1); margin-bottom: 16px; overflow: hidden; }
     details[open] summary { border-bottom: 1px solid #f0f1f3; }
     summary {
@@ -84,7 +82,9 @@
       color: #172b4d;
       margin-bottom: 6px;
     }
-    .field input {
+    .field input[type="text"],
+    .field input[type="password"],
+    .field input[type="month"] {
       width: 100%;
       height: 40px;
       padding: 0 12px;
@@ -99,22 +99,23 @@
     .field input:focus { border-color: #4c9aff; background: #fff; }
     .field .hint { font-size: 11px; color: #6b778c; margin-top: 5px; }
 
-    .pkg-group { display: flex; gap: 8px; }
-    .pkg-option { flex: 1; }
-    .pkg-option input[type="radio"] { display: none; }
-    .pkg-option label {
+    .radio-group { display: flex; gap: 8px; }
+    .radio-option { flex: 1; }
+    .radio-option input[type="radio"] { display: none; }
+    .radio-option label {
       display: block;
       padding: 10px;
       border: 2px solid #dfe1e6;
       border-radius: 6px;
       text-align: center;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
       color: #42526e;
       cursor: pointer;
       transition: all .15s;
+      line-height: 1.4;
     }
-    .pkg-option input:checked + label {
+    .radio-option input:checked + label {
       border-color: #4c9aff;
       background: #e9f2ff;
       color: #0052cc;
@@ -202,6 +203,7 @@
             <span style="color:#6b778c">（初回のみ。次回からは自動入力されます）</span></li>
         <li>Asanaで対象の商品タスクを開き、<strong>URLをコピー</strong>して「タスクURL」欄に貼り付ける</li>
         <li><strong>発売年月</strong>を選択する（例：2027年2月）</li>
+        <li><strong>チーム</strong>を選択する（フローズン または チルド・グロサリー）</li>
         <li><strong>包材タイプ</strong>を選択する（印刷袋 または ラベル）</li>
         <li>「<strong>期日を一括設定する</strong>」ボタンを押す</li>
         <li>設定結果の一覧が表示されたら完了。Asanaをリロードすると反映されています。</li>
@@ -250,13 +252,27 @@
     </div>
 
     <div class="field">
+      <label>チーム</label>
+      <div class="radio-group">
+        <div class="radio-option">
+          <input type="radio" name="team" id="team-frozen" value="冷凍" checked>
+          <label for="team-frozen">フローズン<br><span style="font-weight:400;font-size:11px">（冷凍）</span></label>
+        </div>
+        <div class="radio-option">
+          <input type="radio" name="team" id="team-chilled" value="冷蔵">
+          <label for="team-chilled">チルド・グロサリー<br><span style="font-weight:400;font-size:11px">（冷蔵・常温）</span></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
       <label>包材タイプ</label>
-      <div class="pkg-group">
-        <div class="pkg-option">
+      <div class="radio-group">
+        <div class="radio-option">
           <input type="radio" name="pkg" id="pkg-insatsu" value="印刷袋" checked>
           <label for="pkg-insatsu">印刷袋</label>
         </div>
-        <div class="pkg-option">
+        <div class="radio-option">
           <input type="radio" name="pkg" id="pkg-label" value="ラベル">
           <label for="pkg-label">ラベル</label>
         </div>
@@ -285,46 +301,47 @@
 </div>
 
 <script>
+// ルールキー: 冷凍_印刷袋 / 冷凍_ラベル / 冷蔵_印刷袋 / 冷蔵_ラベル
+// null = そのチーム・包材ではスキップ
+// 冷蔵_note: チルドチームのみ該当タスクに追記するメモ
 const RULES = [
-  { key: 'OEM依頼先',          印刷袋: [-6,'last'], ラベル: [-6,'last'] },
-  { key: '売買契約',            印刷袋: [-2,'last'], ラベル: [-2,'last'] },
-  { key: '仕入先台帳',          印刷袋: [-2,'last'], ラベル: [-2,'last'] },
-  { key: '営業許可証',          印刷袋: [-6,'last'], ラベル: [-6,'last'] },
-  { key: '認証取得状況',        印刷袋: [-6,'last'], ラベル: [-6,'last'] },
-  { key: '事前工場監査',        印刷袋: [-6,'last'], ラベル: [-6,'last'] },
-  { key: '工場監査',            印刷袋: [-1,'last'], ラベル: [-1,'last'] },
-  { key: 'Bill One',            印刷袋: [-1,'last'], ラベル: [-1,'last'] },
-  { key: 'サンプル手配',        印刷袋: [-6,'last'], ラベル: [-6,'last'] },
-  { key: '見積書取得',          印刷袋: [-6,'last'], ラベル: [-6,'last'] },
-  { key: '発注方法確認',        印刷袋: [-6,'last'], ラベル: [-5,'last'] },
-  { key: '商品規格情報',        印刷袋: [-6,'last'], ラベル: [-4,'last'] },
-  { key: '規格書取得',          印刷袋: [-2,15],     ラベル: [-2,15]    },
-  { key: '規格書確認',          印刷袋: [-2,15],     ラベル: [-2,15]    },
-  { key: 'ポジティブリスト',    印刷袋: [-6,'last'], ラベル: [-5,'last'] },
-  { key: '裏面ラベル',          印刷袋: [-2,'last'], ラベル: [-2,'last'] },
-  { key: '一括表示記載内容',    印刷袋: [-6,'last'], ラベル: [-2,15]    },
-  { key: '包材資材',            印刷袋: [-6,'last'], ラベル: [-5,'last'] },
-  { key: '包材業者',            印刷袋: [-6,'last'], ラベル: [-5,'last'] },
-  { key: '写真撮影',            印刷袋: [-5,'last'], ラベル: [-4,'last'] },
-  { key: 'デザイン入稿',        印刷袋: [-5,'last'], ラベル: [-3,'last'] },
-  { key: '入稿',                印刷袋: [-5,'last'], ラベル: [-3,'last'] },
-  { key: 'デザイン',            印刷袋: [-5,'last'], ラベル: [-4,'last'] },
-  { key: '包装資材納品',        印刷袋: [-2,20],     ラベル: [-2,20]    },
-  { key: 'CMSマスタ登録',       印刷袋: [-2,'last'], ラベル: [-2,'last'] },
-  { key: 'マスタ登録',          印刷袋: [-2,'last'], ラベル: [-2,'last'] },
-  { key: '最終卸値',            印刷袋: [-2,'last'], ラベル: [-2,'last'] },
-  { key: 'リクエスト原稿',      印刷袋: [-2,'last'], ラベル: [-2,'last'] },
-  { key: '新商品情報シート',    印刷袋: [-1,1],      ラベル: [-1,1]     },
-  { key: 'リクエスト画面FIX',   印刷袋: [-1,4],      ラベル: [-1,4]     },
-  { key: 'メニュー表作成',      印刷袋: [-1,5],      ラベル: [-1,5]     },
-  { key: '形態確認',            印刷袋: [-2,'week2'],ラベル: [-2,'week2']},
-  { key: 'ラインナップ確定案内',印刷袋: [-1,5],      ラベル: [-1,5]     },
-  { key: '運営（PM）',          印刷袋: [-1,5],      ラベル: [-1,5]     },
-  { key: '運営-発注',           印刷袋: [-1,5],      ラベル: [-1,5]     },
-  { key: '運営チーム',          印刷袋: [-1,5],      ラベル: [-1,5]     },
-  { key: '製造依頼',            印刷袋: [-2,15],     ラベル: [-2,15]    },
-  { key: '初回製造品確認',      印刷袋: [0,'biz5'],  ラベル: [0,'biz5'] },
-  { key: '販促',                印刷袋: [-1,'last'], ラベル: [-1,'last'] },
+  { key: 'OEM依頼先',         冷凍_印刷袋:[-7,'last'], 冷凍_ラベル:[-6,'last'], 冷蔵_印刷袋:[-6,'last'], 冷蔵_ラベル:[-6,'last'] },
+  { key: '売買契約',           冷凍_印刷袋:[-3,'last'], 冷凍_ラベル:[-3,'last'], 冷蔵_印刷袋:[-2,'last'], 冷蔵_ラベル:[-2,'last'] },
+  { key: '仕入先台帳',         冷凍_印刷袋:[-3,'last'], 冷凍_ラベル:[-3,'last'], 冷蔵_印刷袋:[-2,'last'], 冷蔵_ラベル:[-2,'last'] },
+  { key: '営業許可証',         冷凍_印刷袋:[-8,'last'], 冷凍_ラベル:[-7,'last'], 冷蔵_印刷袋:[-6,'last'], 冷蔵_ラベル:[-6,'last'] },
+  { key: '事前工場監査',       冷凍_印刷袋:[-7,'last'], 冷凍_ラベル:[-6,30],    冷蔵_印刷袋:[-6,'last'], 冷蔵_ラベル:[-6,'last'] },
+  { key: '工場監査',           冷凍_印刷袋:[-1,'last'], 冷凍_ラベル:[-1,'last'], 冷蔵_印刷袋:[-1,'last'], 冷蔵_ラベル:[-1,'last'] },
+  { key: 'Bill One',           冷凍_印刷袋:[-2,'last'], 冷凍_ラベル:[-2,'last'], 冷蔵_印刷袋:[-1,'last'], 冷蔵_ラベル:[-1,'last'] },
+  { key: 'サンプル手配',       冷凍_印刷袋:[-7,'last'], 冷凍_ラベル:[-5,'last'], 冷蔵_印刷袋:[-6,'last'], 冷蔵_ラベル:[-6,'last'] },
+  { key: '見積書取得',         冷凍_印刷袋:[-7,'last'], 冷凍_ラベル:[-5,'last'], 冷蔵_印刷袋:[-6,'last'], 冷蔵_ラベル:[-6,'last'] },
+  { key: '発注方法確認',       冷凍_印刷袋:[-5,'last'], 冷凍_ラベル:[-5,'last'], 冷蔵_印刷袋:[-6,'last'], 冷蔵_ラベル:[-5,'last'] },
+  { key: '採用の決定',         冷凍_印刷袋:[-7,'last'], 冷凍_ラベル:[-5,'last'], 冷蔵_印刷袋:[-6,'last'], 冷蔵_ラベル:[-5,'last'] },
+  { key: '商品規格情報',       冷凍_印刷袋:[-7,'last'], 冷凍_ラベル:[-5,'last'], 冷蔵_印刷袋:[-6,'last'], 冷蔵_ラベル:[-4,'last'] },
+  { key: '商品規格（味',       冷凍_印刷袋:[-6,30],    冷凍_ラベル:[-4,15],    冷蔵_印刷袋:[-6,'last'], 冷蔵_ラベル:[-3,'last'] },
+  { key: '商品卸値',           冷凍_印刷袋:[-6,30],    冷凍_ラベル:[-4,15],    冷蔵_印刷袋:[-6,'last'], 冷蔵_ラベル:[-2,'last'] },
+  { key: '規格書確認',         冷凍_印刷袋:[-6,'last'], 冷凍_ラベル:[-4,'last'], 冷蔵_印刷袋:[-2,15],    冷蔵_ラベル:[-2,15]    },
+  { key: '一括表示記載内容',   冷凍_印刷袋:[-6,'last'], 冷凍_ラベル:[-4,'last'], 冷蔵_印刷袋:[-6,'last'], 冷蔵_ラベル:[-2,15]    },
+  { key: 'ポジティブリスト',   冷凍_印刷袋:null,        冷凍_ラベル:null,        冷蔵_印刷袋:[-6,'last'], 冷蔵_ラベル:[-5,'last'] },
+  { key: '包材選定',           冷凍_印刷袋:[-6,5],     冷凍_ラベル:[-4,5],     冷蔵_印刷袋:[-6,'last'], 冷蔵_ラベル:[-5,'last'] },
+  { key: '包材見積',           冷凍_印刷袋:[-6,5],     冷凍_ラベル:[-4,5],     冷蔵_印刷袋:[-6,'last'], 冷蔵_ラベル:[-5,'last'] },
+  { key: '写真撮影',           冷凍_印刷袋:[-6,15],    冷凍_ラベル:[-4,15],    冷蔵_印刷袋:[-5,'last'], 冷蔵_ラベル:[-4,'last'] },
+  { key: '形態確認',           冷凍_印刷袋:[-4,'week2'],冷凍_ラベル:[-4,'week2'],冷蔵_印刷袋:[-2,'week2'],冷蔵_ラベル:[-2,'week2']},
+  { key: 'デザイン品管',       冷凍_印刷袋:[-6,'last'], 冷凍_ラベル:[-4,30],    冷蔵_印刷袋:[-5,'last'], 冷蔵_ラベル:[-4,'last'] },
+  { key: 'デザイン入稿',       冷凍_印刷袋:[-6,'last'], 冷凍_ラベル:[-3,15],    冷蔵_印刷袋:[-5,'last'], 冷蔵_ラベル:[-3,'last'] },
+  { key: 'デザイン',           冷凍_印刷袋:[-5,'last'], 冷凍_ラベル:[-4,15],    冷蔵_印刷袋:[-6,'last'], 冷蔵_ラベル:[-5,'last'] },
+  { key: '包装資材納品',       冷凍_印刷袋:[-3,'last'], 冷凍_ラベル:[-3,'last'], 冷蔵_印刷袋:[-2,20],    冷蔵_ラベル:[-2,20]    },
+  { key: 'マスタ登録',         冷凍_印刷袋:[-3,'last'], 冷凍_ラベル:[-3,'last'], 冷蔵_印刷袋:[-2,'last'], 冷蔵_ラベル:[-2,'last'] },
+  { key: '最終卸値',           冷凍_印刷袋:[-2,20],    冷凍_ラベル:[-2,20],    冷蔵_印刷袋:[-2,'last'], 冷蔵_ラベル:[-2,'last'] },
+  { key: 'リクエスト画面FIX', 冷凍_印刷袋:[-1,4],     冷凍_ラベル:[-1,4],     冷蔵_印刷袋:[-1,4],     冷蔵_ラベル:[-1,4]     },
+  { key: 'リクエスト原稿',     冷凍_印刷袋:[-2,20],    冷凍_ラベル:[-2,20],    冷蔵_印刷袋:[-2,'last'], 冷蔵_ラベル:[-2,'last'] },
+  { key: '新商品情報シート',   冷凍_印刷袋:[-1,1],     冷凍_ラベル:[-1,1],     冷蔵_印刷袋:[-1,1],     冷蔵_ラベル:[-1,1]     },
+  { key: 'メニュー表作成',     冷凍_印刷袋:[-1,5],     冷凍_ラベル:[-1,5],     冷蔵_印刷袋:[-1,5],     冷蔵_ラベル:[-1,5]     },
+  { key: 'ラインナップ確定案内',冷凍_印刷袋:[-3,'last'],冷凍_ラベル:[-3,'last'],冷蔵_印刷袋:[-1,5],     冷蔵_ラベル:[-1,5]     },
+  { key: '予測発注',           冷凍_印刷袋:[-2,5],     冷凍_ラベル:[-2,5],     冷蔵_印刷袋:null,        冷蔵_ラベル:null        },
+  { key: '製造依頼',           冷凍_印刷袋:[-2,10],    冷凍_ラベル:[-2,10],    冷蔵_印刷袋:[-2,15],    冷蔵_ラベル:[-2,15],
+    冷蔵_note: 'チルド・グロサリーチーム：デイリー商品は製造依頼不要' },
+  { key: '初回製造品確認',     冷凍_印刷袋:[-1,15],    冷凍_ラベル:[-1,15],    冷蔵_印刷袋:[0,'biz5'],  冷蔵_ラベル:[0,'biz5'] },
+  { key: '販促',               冷凍_印刷袋:null,        冷凍_ラベル:null,        冷蔵_印刷袋:[-1,'last'], 冷蔵_ラベル:[-1,'last'] },
 ];
 
 function findRule(name) { return RULES.find(r => name.includes(r.key)) || null; }
@@ -372,6 +389,21 @@ function hdrs(pat) {
   return { 'Authorization': `Bearer ${pat}`, 'Content-Type': 'application/json' };
 }
 
+async function appendNote(pat, gid, note) {
+  try {
+    const r = await fetch(`${API}/tasks/${gid}?opt_fields=notes`, { headers: hdrs(pat) });
+    if (!r.ok) return;
+    const { data } = await r.json();
+    const existing = data.notes || '';
+    if (existing.includes(note)) return;
+    const updated = existing ? `${existing}\n\n${note}` : note;
+    await fetch(`${API}/tasks/${gid}`, {
+      method: 'PUT', headers: hdrs(pat),
+      body: JSON.stringify({ data: { notes: updated } })
+    });
+  } catch (_) {}
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   const saved = localStorage.getItem('asana_pat');
   if (saved) document.getElementById('pat').value = saved;
@@ -384,7 +416,9 @@ async function run() {
   const pat = document.getElementById('pat').value.trim();
   const urlInput = document.getElementById('task-url').value;
   const launchVal = document.getElementById('launch-month').value;
+  const team = document.querySelector('input[name="team"]:checked').value;
   const pkg = document.querySelector('input[name="pkg"]:checked').value;
+  const ruleKey = `${team}_${pkg}`;
   const gid = extractGid(urlInput);
 
   if (!pat) { alert('Personal Access Token を入力してください。\n上の「🔑 取得方法」をご確認ください。'); return; }
@@ -414,14 +448,18 @@ async function run() {
     for (const task of subtasks) {
       const rule = findRule(task.name);
       const tr = document.createElement('tr');
-      if (!rule) {
+
+      const ruleVal = rule ? rule[ruleKey] : null;
+      if (!rule || ruleVal === null || ruleVal === undefined) {
         skipCount++;
         tr.innerHTML = `<td>${task.name}</td><td>—</td><td><span class="badge badge-skip">スキップ</span></td>`;
         tbody.appendChild(tr);
         continue;
       }
-      const [offset, dayRule] = rule[pkg];
+
+      const [offset, dayRule] = ruleVal;
       const due = calcDue(launchYear, launchMonth0, offset, dayRule);
+
       try {
         const ur = await fetch(`${API}/tasks/${task.gid}`, {
           method: 'PUT', headers: hdrs(pat),
@@ -430,6 +468,9 @@ async function run() {
         if (ur.ok) {
           okCount++;
           tr.innerHTML = `<td>${task.name}</td><td class="due">${due}</td><td><span class="badge badge-ok">✓ 設定完了</span></td>`;
+          if (team === '冷蔵' && rule['冷蔵_note']) {
+            await appendNote(pat, task.gid, rule['冷蔵_note']);
+          }
         } else {
           errCount++;
           tr.innerHTML = `<td>${task.name}</td><td class="due">${due}</td><td><span class="badge badge-err">エラー</span></td>`;
