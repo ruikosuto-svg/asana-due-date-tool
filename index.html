@@ -389,6 +389,22 @@ function hdrs(pat) {
   return { 'Authorization': `Bearer ${pat}`, 'Content-Type': 'application/json' };
 }
 
+// CMSマスタ登録を🍎マスタ登録リストに追加する
+// - プロジェクト「商品プロジェクト管理」の「★新規商品登録」セクションにマルチホーミング
+// - カスタムフィールド「タスク属性」を「マスタ登録」にセット
+async function addToMasterList(pat, gid) {
+  try {
+    await fetch(`${API}/sections/1211726033067889/addTask`, {
+      method: 'POST', headers: hdrs(pat),
+      body: JSON.stringify({ data: { task: gid } })
+    });
+    await fetch(`${API}/tasks/${gid}`, {
+      method: 'PUT', headers: hdrs(pat),
+      body: JSON.stringify({ data: { custom_fields: { '1208869960411895': ['1208869960411896'] } } })
+    });
+  } catch (_) {}
+}
+
 async function appendNote(pat, gid, note) {
   try {
     const r = await fetch(`${API}/tasks/${gid}?opt_fields=notes`, { headers: hdrs(pat) });
@@ -468,6 +484,9 @@ async function run() {
         if (ur.ok) {
           okCount++;
           tr.innerHTML = `<td>${task.name}</td><td class="due">${due}</td><td><span class="badge badge-ok">✓ 設定完了</span></td>`;
+          if (task.name.includes('CMSマスタ登録')) {
+            await addToMasterList(pat, task.gid);
+          }
           if (team === '冷蔵' && rule['冷蔵_note']) {
             await appendNote(pat, task.gid, rule['冷蔵_note']);
           }
